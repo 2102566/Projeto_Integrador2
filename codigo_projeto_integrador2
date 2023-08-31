@@ -1,0 +1,276 @@
+# Código da aplicação referente a disciplina de projeto integrador 2 do curso de Ciêmca de dados da Univesp
+import time
+
+from flask import Flask, request, Response, g, redirect, url_for, flash
+import pyodbc
+import pandas as pd
+import requests
+
+app = Flask(__name__)
+
+# Variaveis globais para controle
+
+log = False
+usuar = ''
+permissao = ''
+vid = ''
+vnome = ''
+vmatricula = ''
+vfuncao = ''
+vlider = ''
+vprojeto = ''
+valteracao = ''
+vdata = ''
+tabela = ''
+
+
+# Página de LOGIN
+@app.route("/")
+def homepage():
+    global log
+    global usuar
+    global permissao
+    log = False
+
+    cnxn = pyodbc.connect(
+        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=SERVER;DATABASE=DATABASE;Trusted_Connection=yes')
+    count = ''' select count(*) as row from [dbo].[acessos]  '''
+    ssql = ''' select * from [dbo].[acessos] '''
+    dff = pd.read_sql(ssql, cnxn)
+    rows = pd.read_sql(count, cnxn)
+    linhas = rows['row'][0]
+    usuario = request.args.get('user_login')
+    usuar = usuario
+    password = request.args.get('senha_login')
+
+    for i in range(linhas):
+        if dff['nome'][i] == usuario and dff['senha'][i] == password:
+            log = True
+            permissao = dff['tipo_acesso'][i]
+            break
+        elif dff['nome'][i] != usuario or dff['senha'][i] != password:
+            log = False
+
+    form = '''<b>Primeira página</b> <br><br> LOGIN <br><br><br><br> <form method="PUT" >
+             <body><div><style>
+             <p><img src=({{url_for('static',filename='imagem_teste.jpg' }})></p>
+             </style></div></body>
+            <input type="text" name="user_login" placeholder="Digite nome" >
+            <input type="password" name="senha_login" placeholder="Digite senha">
+            <input type="submit" name="enviar" value="Login">
+        </form> 
+            <br><br><i> Seu acesso está recusado <i> '''
+
+    form_2 = '''<b>Página de acesso</b> <br><br> <br><br><br><br> <form method="GET" >
+            <body>
+            <style>
+            body{
+
+
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-color: violet
+
+
+
+             }
+             </style></body><center>
+
+            <input type="text" name="user_login" placeholder="Digite nome" >
+            <br><br><input type="password" name="senha_login" placeholder="Digite senha" >
+            <br><br><input type="submit" name="enviar" value="Login">
+        </form></center>
+
+
+        '''
+
+    if (log == True and usuario != None and permissao == 'F'):
+        return redirect(url_for("menu"))
+
+    elif (log == True and usuario != None and permissao == 'C'):
+        return redirect(url_for("consulta"))
+
+    elif (log == False and usuario != None):
+        return form
+
+    else:
+        return form_2
+
+
+# Página do MENU de acordo com o tipo de acesso do usuário
+
+@app.route("/menu")
+def menu():
+    global usuar
+    global permissao
+    global log
+    log = True
+
+    html = ''' <html><b>Menu</b><br><br>
+                <left>
+
+                <body>
+                <br><br><br>
+                <b>Escolha sua ação:</b>
+                <style>
+                body{
+
+                    background-color: Violet
+
+                    }
+                </style>
+
+                </body>
+                <br><br><br>
+                <a href = "http://127.0.0.1:5000/cadastro"> Cadastrar cliente </a>
+
+                <br><br> <a href = "http://127.0.0.1:5000/"> Consultar dados do cliente </a>
+
+                <br><br> <a href = "http://127.0.0.1:5000/" > Alterar dados do cliente </a>
+
+                <br><br> <a href = "http://127.0.0.1:5000/" > Nova venda </a>
+
+                <br><br> <a href = "http://127.0.0.1:5000/" > Estoque </a>
+
+
+                </html>
+
+    '''
+    if permissao == 'C':
+        return redirect(url_for("consulta"))
+    elif (usuar == None or usuar == "") or log == False:
+        return redirect("/")
+
+    else:
+        return html
+
+
+# Pagina de cadastro dados cadastrados dos clientes
+@app.route("/cadastro")
+def cadastro():
+    global log
+    global usuar
+    global permissao
+
+    nome = request.args.get('nome')
+    sobrenome = request.args.get('sobrenome')
+    documento = request.args.get('doc')
+    celular = request.args.get('cel')
+    dt_nascimento = request.args.get('nascimento')
+    telefone = request.args.get('fone')
+    email = request.args.get('email')
+    cep = request.args.get('cep')
+    rua = request.args.get('rua')
+    bairro = request.args.get('bairro')
+    numero = request.args.get('numero')
+    complemento = request.args.get('complemento')
+
+    html = f'''<b>Cadastro dos dados</b> <br><br>  <br><br><br><br> 
+    <form method="PUT" >
+    <body>
+                <style>
+                body{{
+
+                background-repeat: no-repeat;
+                background-attachment: fixed;
+                background-color: Violet
+
+
+                 }}
+                 </style></body>
+                 <label for >
+
+    <input type="text" name="nome" placeholder="Digite Nome" >
+    <input type="text" name="sobrenome" placeholder="Digite Sobrenome">
+    <input type="text" size='30' name="doc" placeholder="Digite documento(apenas numeros)">
+    <input type="text" name="nascimento" placeholder="Digite data de nascimento">
+    <input type="text" name="cel" placeholder="Digite Celular">
+    <input type="text" name="fone" placeholder="Digite Telefone(opcional)">
+    <input type="text" name="email" placeholder="Digite e-mail">
+    <input type="text" name="cep" placeholder="Digite cep(opcional)">
+    <input type="text" name="rua" placeholder="Digite Nome da rua">
+    <input type="text" name="bairro" placeholder="Digite Nome do bairro">
+    <input type="text" name="numero" placeholder="Digite Numero">
+    <input type="text" size='25' name="complemento" placeholder="Digite Complemento(opcional)">
+
+    <input type="submit" name="enviar" value="Cadastrar">
+</form> 
+
+
+'''
+
+    html3 = f'''<b>Cadastro dos dados</b> <br><br> <br><br><br><br> <form method="PUT" >
+    <body>
+                <style>
+                body{{
+
+                background-repeat: no-repeat;
+                background-attachment: fixed;
+                background-color: Violet
+
+
+                 }}
+                 </style></body>
+
+
+    <input type="text" name="nome" placeholder="Digite Nome" >
+    <input type="text" name="matricula" placeholder="Digite Matricula">
+    <input type="text" name="funcao" placeholder="Digite Função">
+    <input type="text" name="lider" placeholder="Digite id do lider">
+    <input type="text" name="projeto" placeholder="Digite codigo do projeto">
+    <input type="submit" name="enviar" value="Cadastrar">
+        </form> 
+
+            <br>
+
+    '''
+    if (usuar == None or usuar == "") or log == False or permissao != "F":
+        return redirect('/')
+    elif nome == None:
+        return html
+    elif documento == None:
+        return html
+    elif len(nome) <= 1:
+        return html
+
+    try:
+        cnxn = pyodbc.connect(
+            'DRIVER={ODBC Driver 17 for SQL Server};SERVER=SERVER;DATABASE=DATABASE;Trusted_Connection=yes')
+
+        # Inserindo dados na tabela de cliente
+        query_cliente = f''' insert into  [Projeto_Integrador2].[dbo].[clietes] (nome,sobrenome,data_nascimento,documento) 
+                      values('{nome}','{sobrenome}','{dt_nascimento}',{documento}) '''
+        cnxn.execute(query_cliente)
+        cnxn.commit()
+        time.sleep(5)
+
+        ################################################################################################################
+        # Pegando o id_cliente da Tabela
+        query_id = f''' SELECT id_cliente FROM [Projeto_Integrador2].[dbo].[clietes] WHERE documento = {documento} '''
+        df = pd.read_sql(query_id, cnxn)
+        id_cli = df['id_cliente'][0]
+        ################################################################################################################
+
+        # Inserindo dados na tabela de contatos
+        query_contato = f''' insert into [Projeto_Integrador2].[dbo].[contato] (celular,telefone,email,id_cliente) 
+                              values('{celular}','{telefone}','{email}',{id_cli})  '''
+        cnxn.execute(query_contato)
+        cnxn.commit()
+
+        # Inserindo dados na tabela de endereco
+        query_endereco = f''' insert into [Projeto_Integrador2].[dbo].[endereco] (cep,rua,bairro,numero,complemento,id_cliente) 
+                                      values('{cep}','{rua}','{bairro}','{numero}','{complemento}',{id_cli})  '''
+        cnxn.execute(query_endereco)
+        cnxn.commit()
+
+        return html + f" Dados de {nome} {sobrenome} foram cadastrados com sucesso"
+
+    except:
+        return html3
+
+
+
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
