@@ -1,4 +1,4 @@
-# Código da aplicação referente a disciplina de projeto integrador 2 do curso de Ciêmca de dados da Univesp
+# Código da aplicação referente a disciplina de projeto integrador 2 do curso de Ciência de dados da Univesp
 import time
 
 from flask import Flask, request, Response, g, redirect, url_for, flash
