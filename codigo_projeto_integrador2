@@ -1,6 +1,5 @@
-# Código da aplicação referente a disciplina de projeto integrador 2 do curso de Ciêmca de dados da Univesp
+# Código da aplicação referente a disciplina de projeto integrador 2 do curso de Ciência de dados da Univesp
 import time
-
 from flask import Flask, request, Response, g, redirect, url_for, flash
 import pyodbc
 import pandas as pd
@@ -15,13 +14,19 @@ usuar = ''
 permissao = ''
 vid = ''
 vnome = ''
-vmatricula = ''
-vfuncao = ''
-vlider = ''
-vprojeto = ''
-valteracao = ''
-vdata = ''
+vsobrenome = ''
+vdocumento = ''
+vid_cliente = ''
+vcelular = ''
+vemail = ''
+vdata_nasc = ''
+vtelefone = ''
+vcep = ''
+vbairro = ''
+vrua = ''
+vcomplemento = ''
 tabela = ''
+cadastro = ''
 
 
 # Página de LOGIN
@@ -33,7 +38,7 @@ def homepage():
     log = False
 
     cnxn = pyodbc.connect(
-        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=SERVER;DATABASE=DATABASE;Trusted_Connection=yes')
+        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=server;DATABASE=databse;Trusted_Connection=yes')
     count = ''' select count(*) as row from [dbo].[acessos]  '''
     ssql = ''' select * from [dbo].[acessos] '''
     dff = pd.read_sql(ssql, cnxn)
@@ -124,7 +129,7 @@ def menu():
                 <br><br><br>
                 <a href = "http://127.0.0.1:5000/cadastro"> Cadastrar cliente </a>
 
-                <br><br> <a href = "http://127.0.0.1:5000/"> Consultar dados do cliente </a>
+                <br><br> <a href = "http://127.0.0.1:5000/consulta"> Consultar dados do cliente </a>
 
                 <br><br> <a href = "http://127.0.0.1:5000/" > Alterar dados do cliente </a>
 
@@ -151,6 +156,7 @@ def cadastro():
     global log
     global usuar
     global permissao
+    global msg
 
     nome = request.args.get('nome')
     sobrenome = request.args.get('sobrenome')
@@ -193,13 +199,15 @@ def cadastro():
     <input type="text" name="numero" placeholder="Digite Numero">
     <input type="text" size='25' name="complemento" placeholder="Digite Complemento(opcional)">
 
-    <input type="submit" name="enviar" value="Cadastrar">
+    <br><br><input type="submit" name="enviar" value="Cadastrar">
+    <br><br><br><br>
 </form> 
 
 
 '''
 
-    html3 = f'''<b>Cadastro dos dados</b> <br><br> <br><br><br><br> <form method="PUT" >
+    html2 = f'''<b>ERRO no cadastro dos dados</b> <br><br>  <br><br><br><br> 
+    <form method="PUT" >
     <body>
                 <style>
                 body{{
@@ -211,17 +219,27 @@ def cadastro():
 
                  }}
                  </style></body>
-
+                 <label for >
 
     <input type="text" name="nome" placeholder="Digite Nome" >
-    <input type="text" name="matricula" placeholder="Digite Matricula">
-    <input type="text" name="funcao" placeholder="Digite Função">
-    <input type="text" name="lider" placeholder="Digite id do lider">
-    <input type="text" name="projeto" placeholder="Digite codigo do projeto">
-    <input type="submit" name="enviar" value="Cadastrar">
-        </form> 
+    <input type="text" name="sobrenome" placeholder="Digite Sobrenome">
+    <input type="text" size='30' name="doc" placeholder="Digite documento(apenas numeros)">
+    <input type="text" name="nascimento" placeholder="Digite data de nascimento">
+    <input type="text" name="cel" placeholder="Digite Celular">
+    <input type="text" name="fone" placeholder="Digite Telefone(opcional)">
+    <input type="text" name="email" placeholder="Digite e-mail">
+    <input type="text" name="cep" placeholder="Digite cep(opcional)">
+    <input type="text" name="rua" placeholder="Digite Nome da rua">
+    <input type="text" name="bairro" placeholder="Digite Nome do bairro">
+    <input type="text" name="numero" placeholder="Digite Numero">
+    <input type="text" size='25' name="complemento" placeholder="Digite Complemento(opcional)">
 
-            <br>
+    <br><br><input type="submit" name="enviar" value="Cadastrar">
+
+    <br><br>
+
+
+</form> 
 
     '''
     if (usuar == None or usuar == "") or log == False or permissao != "F":
@@ -232,44 +250,216 @@ def cadastro():
         return html
     elif len(nome) <= 1:
         return html
+    elif (nome != None and nome != ""):
+        cnxn = pyodbc.connect(
+            'DRIVER={ODBC Driver 17 for SQL Server};SERVER=server;DATABASE=databse;Trusted_Connection=yes')
+        try:
+            rdocumento = documento.replace('-', '').replace('.', '')
+            valida_entrada = f''' SELECT id_cliente FROM [Projeto_Integrador2].[dbo].[clietes] WHERE documento = {rdocumento} '''
+            try:
+                df = pd.read_sql(valida_entrada, cnxn)
+                id_cli = df['id_cliente'][0]
+            except:
+                id_cli = 'não existe'
+            if id_cli > 0:
+                pass
+            elif documento.__contains__('.') == False:
+                return html2 + f'Cliente já cadastrado, registro {id_cli}'
+
+            else:
+
+                return html2 + f'Verifique o documento do cliente: {documento}, preencha o campo apenas com números'
+
+
+        except:
+            try:
+                cnxn = pyodbc.connect(
+                    'DRIVER={ODBC Driver 17 for SQL Server};SERVER=server;DATABASE=database;Trusted_Connection=yes')
+
+                # Inserindo dados na tabela de cliente
+                query_cliente = f''' insert into  [Projeto_Integrador2].[dbo].[clietes] (nome,sobrenome,data_nascimento,documento) 
+                              values('{nome}','{sobrenome}','{dt_nascimento}',{documento}) '''
+                cnxn.execute(query_cliente)
+                cnxn.commit()
+                time.sleep(5)
+
+                ################################################################################################################
+                # Pegando o id_cliente da Tabela
+                query_id = f''' SELECT id_cliente FROM [Projeto_Integrador2].[dbo].[clietes] WHERE documento = {documento} '''
+                df = pd.read_sql(query_id, cnxn)
+                id_cli = df['id_cliente'][0]
+                ################################################################################################################
+
+                # Inserindo dados na tabela de contatos
+                query_contato = f''' insert into [Projeto_Integrador2].[dbo].[contato] (celular,telefone,email,id_cliente) 
+                                      values('{celular}','{telefone}','{email}',{id_cli})  '''
+                cnxn.execute(query_contato)
+                cnxn.commit()
+
+                # Inserindo dados na tabela de endereco
+                query_endereco = f''' insert into [Projeto_Integrador2].[dbo].[endereco] (cep,rua,bairro,numero,complemento,id_cliente) 
+                                              values('{cep}','{rua}','{bairro}','{numero}','{complemento}',{id_cli})  '''
+                cnxn.execute(query_endereco)
+                cnxn.commit()
+
+                return html + f" Dados de {nome} {sobrenome} foram cadastrados com sucesso"
+
+            except:
+                return html2 + f'Houve um erro no cadastramento, verifique os dados e tente novamente'
+
+
+# Gerando o front para consultar os dados dos clientes
+
+@app.route("/consulta")
+def consulta():
+    global vsobrenome
+    global vnome
+    global vdocumento
+    global vid_cliente
+    global vcelular
+    global vemail
+    global vdata_nasc
+    global vtelefone
+    global vcep
+    global vbairro
+    global vrua
+    global vcomplemento
+    global tabela
+    global usuar
+    global permissao
+    global cadastro
+
+    nome = request.args.get('nome')
+    sobrenome = request.args.get('sobrenome')
+    documento = request.args.get('doc')
+
+    cnxn = pyodbc.connect(
+        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=server;DATABASE=database;Trusted_Connection=yes')
+
+    # Consulta por nome
+    if (nome != None and nome != "") and (sobrenome == None or sobrenome == '') and (
+            documento == None or documento == ''):
+        query = f''' EXEC [dbo].[consulta_cliente_nome] {nome} '''
+        df = pd.read_sql(query, cnxn)
+        tabela = df.to_html(col_space="100px", index=False, justify='center')
+
+    # COnsulta por Nome e Sobrenome
+    if (nome != None and nome != "") and (sobrenome != None and sobrenome != '') and (
+            documento == None or documento == ''):
+        query1 = f''' EXEC consulta_cliente_nome_sobrenome {nome},{sobrenome}'''
+        df = pd.read_sql(query1, cnxn)
+        tabela = df.to_html(col_space="100px", index=False, justify='center')
+
+    # Consulta por documento
+    if (nome == None or nome == "") and (sobrenome == None or sobrenome == '') and (
+            documento != None and documento != ''):
+        vardoc = documento.replace('.', '').replace('-', '')
+        query2 = f''' EXEC [dbo].[consulta_cliente_documento] {vardoc} '''
+        df = pd.read_sql(query2, cnxn)
+        tabela = df.to_html(col_space="100px", index=False, justify='center')
+
+    # Consulta por todos os campos
+    if (nome != None and nome != "") and (sobrenome != None and sobrenome != '') and (
+            documento != None and documento != ''):
+        query3 = f''' EXEC [dbo].[consulta_cliente_full] {nome},'{sobrenome}',{documento} '''
+        df = pd.read_sql(query3, cnxn)
+        tabela = df.to_html(col_space="100px", index=False, justify='center')
 
     try:
-        cnxn = pyodbc.connect(
-            'DRIVER={ODBC Driver 17 for SQL Server};SERVER=SERVER;DATABASE=DATABASE;Trusted_Connection=yes')
 
-        # Inserindo dados na tabela de cliente
-        query_cliente = f''' insert into  [Projeto_Integrador2].[dbo].[clietes] (nome,sobrenome,data_nascimento,documento) 
-                      values('{nome}','{sobrenome}','{dt_nascimento}',{documento}) '''
-        cnxn.execute(query_cliente)
-        cnxn.commit()
-        time.sleep(5)
+        vnome = df['nome'].unique()
+        vsobrenome = df['sobrenome'].unique()
+        vdocumento = df['documento '].unique()
+        vid_cliente = df['id_cliente'].unique()
+        vcelular = df['celular'].unique()
+        vemail = df['email'].unique()
+        vdata_nasc = df['data_nascimento'].unique()
+        vtelefone = df['telefone'].unique()
+        vcep = df['cep'].unique()
+        vbairro = df['bairro'].unique()
+        vrua = df['rua'].unique()
+        vcomplemento = df['complemento'].unique()
+        # cadastro = df['data_cadastro'].unique()
+        # vtelefone = df['data_ultima_alteracao'].unique()
+        # vtelefone = df['data_ultima_alteracao'].unique()
 
-        ################################################################################################################
-        # Pegando o id_cliente da Tabela
-        query_id = f''' SELECT id_cliente FROM [Projeto_Integrador2].[dbo].[clietes] WHERE documento = {documento} '''
-        df = pd.read_sql(query_id, cnxn)
-        id_cli = df['id_cliente'][0]
-        ################################################################################################################
 
-        # Inserindo dados na tabela de contatos
-        query_contato = f''' insert into [Projeto_Integrador2].[dbo].[contato] (celular,telefone,email,id_cliente) 
-                              values('{celular}','{telefone}','{email}',{id_cli})  '''
-        cnxn.execute(query_contato)
-        cnxn.commit()
-
-        # Inserindo dados na tabela de endereco
-        query_endereco = f''' insert into [Projeto_Integrador2].[dbo].[endereco] (cep,rua,bairro,numero,complemento,id_cliente) 
-                                      values('{cep}','{rua}','{bairro}','{numero}','{complemento}',{id_cli})  '''
-        cnxn.execute(query_endereco)
-        cnxn.commit()
-
-        return html + f" Dados de {nome} {sobrenome} foram cadastrados com sucesso"
 
     except:
-        return html3
+        vcep = 'vazio'
+        vdocumento = 'vazio'
+
+    html = f''' 
+    <b>Página de Consulta</b> <br><br> <br><br><br><br> <form method="GET">
+                <body>
+                <style>
+                body{{
+
+                background-repeat: no-repeat;
+                background-attachment: fixed;
+                background-color: Violet
+
+
+                 }}
+                 </style></body>
+
+                 <center>
+                NOME:
+                <input type="text" name="nome">
+
+                <br><br>SOBRENOME:
+                <input type="text" name="sobrenome">
+
+                <br><br>DOCUMENTO:
+                <input type="text" name="doc">
+
+                <br><br>LIDER:
+                <input type="text" name="lider">
+
+
+                <br><br><input type="submit" name="enviar" value="Consultar">
+
+                <br><br><br><br><br>
+
+
+                <b>*Escolha um campo para fazer a consulta</b>
 
 
 
+
+            </form></center>
+            '''
+
+    if (log == False or permissao == None or permissao == ''):
+        return redirect('/')
+    elif (nome == None and sobrenome == None and documento == None):
+        return html
+    elif (nome != None or sobrenome != None or documento != None):
+        return redirect('/tabela_consulta')
+
+
+@app.route('/tabela_consulta')
+def tabela_consulta():
+    global tabela
+
+    html2 = tabela
+
+    return f'''  <b>TABELA DE CONSULTA</b> 
+                <br><br><html><center>
+                <style>
+                table, th, td
+                {{
+                    border: 1px solid black;
+                }}
+                </style>
+                <body>{html2}</body></center></html>
+                <br><br>  
+            <a href = "http://127.0.0.1:5000/consulta"> Voltar para consulta </a>
+
+            <p style="text-align:right;"> <a href = "http://127.0.0.1:5000/consulta"> Alterar dados do funcionário </a> </p>
+            <br>
+            </form> 
+                '''
 
 
 if __name__ == "__main__":
