@@ -1,5 +1,6 @@
-# Código da aplicação referente a disciplina de projeto integrador 2 do curso de Ciência de dados da Univesp
+# Código da aplicação referente a disciplina de projeto integrador 2 do curso de Ciêmca de dados da Univesp
 import time
+
 from flask import Flask, request, Response, g, redirect, url_for, flash
 import pyodbc
 import pandas as pd
@@ -38,7 +39,7 @@ def homepage():
     log = False
 
     cnxn = pyodbc.connect(
-        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=server;DATABASE=databse;Trusted_Connection=yes')
+        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=server;DATABASE=database;Trusted_Connection=yes')
     count = ''' select count(*) as row from [dbo].[acessos]  '''
     ssql = ''' select * from [dbo].[acessos] '''
     dff = pd.read_sql(ssql, cnxn)
@@ -131,7 +132,7 @@ def menu():
 
                 <br><br> <a href = "http://127.0.0.1:5000/consulta"> Consultar dados do cliente </a>
 
-                <br><br> <a href = "http://127.0.0.1:5000/" > Alterar dados do cliente </a>
+                <br><br> <a href = "http://127.0.0.1:5000/alterar" > Alterar dados do cliente </a>
 
                 <br><br> <a href = "http://127.0.0.1:5000/" > Nova venda </a>
 
@@ -192,14 +193,14 @@ def cadastro():
     <input type="text" name="nascimento" placeholder="Digite data de nascimento">
     <input type="text" name="cel" placeholder="Digite Celular">
     <input type="text" name="fone" placeholder="Digite Telefone(opcional)">
-    <input type="text" name="email" placeholder="Digite e-mail">
+    <input type="text" name="email" placeholder="Digite e-mail"><br><br>
     <input type="text" name="cep" placeholder="Digite cep(opcional)">
     <input type="text" name="rua" placeholder="Digite Nome da rua">
     <input type="text" name="bairro" placeholder="Digite Nome do bairro">
     <input type="text" name="numero" placeholder="Digite Numero">
     <input type="text" size='25' name="complemento" placeholder="Digite Complemento(opcional)">
 
-    <br><br><input type="submit" name="enviar" value="Cadastrar">
+    <br><br><br><input type="submit" name="enviar" value="Cadastrar">
     <br><br><br><br>
 </form> 
 
@@ -227,14 +228,14 @@ def cadastro():
     <input type="text" name="nascimento" placeholder="Digite data de nascimento">
     <input type="text" name="cel" placeholder="Digite Celular">
     <input type="text" name="fone" placeholder="Digite Telefone(opcional)">
-    <input type="text" name="email" placeholder="Digite e-mail">
+    <input type="text" name="email" placeholder="Digite e-mail"><br><br>
     <input type="text" name="cep" placeholder="Digite cep(opcional)">
     <input type="text" name="rua" placeholder="Digite Nome da rua">
     <input type="text" name="bairro" placeholder="Digite Nome do bairro">
     <input type="text" name="numero" placeholder="Digite Numero">
     <input type="text" size='25' name="complemento" placeholder="Digite Complemento(opcional)">
 
-    <br><br><input type="submit" name="enviar" value="Cadastrar">
+    <br><br><br><input type="submit" name="enviar" value="Cadastrar">
 
     <br><br>
 
@@ -252,26 +253,35 @@ def cadastro():
         return html
     elif (nome != None and nome != ""):
         cnxn = pyodbc.connect(
-            'DRIVER={ODBC Driver 17 for SQL Server};SERVER=server;DATABASE=databse;Trusted_Connection=yes')
+            'DRIVER={ODBC Driver 17 for SQL Server};SERVER=Server;DATABASE=databse;Trusted_Connection=yes')
         try:
-            rdocumento = documento.replace('-', '').replace('.', '')
-            valida_entrada = f''' SELECT id_cliente FROM [Projeto_Integrador2].[dbo].[clietes] WHERE documento = {rdocumento} '''
+
             try:
+                rdocumento = documento.replace('-', '').replace('.', '')
+                valida_entrada = f''' SELECT id_cliente FROM [Projeto_Integrador2].[dbo].[clietes] WHERE documento = {rdocumento} '''
                 df = pd.read_sql(valida_entrada, cnxn)
                 id_cli = df['id_cliente'][0]
             except:
-                id_cli = 'não existe'
+                id_cli = None
+
             if id_cli > 0:
-                pass
-            elif documento.__contains__('.') == False:
                 return html2 + f'Cliente já cadastrado, registro {id_cli}'
 
-            else:
 
-                return html2 + f'Verifique o documento do cliente: {documento}, preencha o campo apenas com números'
+
+
+
+
 
 
         except:
+            if documento.__contains__('.') == True:
+                return html2 + f'Verifique o documento do cliente: {documento}, preencha o campo apenas com números'
+            elif (rua == None or rua == '') or (bairro == None or bairro == '') or (
+                    sobrenome == None or sobrenome == '') \
+                    or (celular == None or celular == '') or (numero == '') or (email == None or email == ''):
+                return html2 + f'Houve um erro no cadastramento, preencha todos os dados obrigatórios'
+
             try:
                 cnxn = pyodbc.connect(
                     'DRIVER={ODBC Driver 17 for SQL Server};SERVER=server;DATABASE=database;Trusted_Connection=yes')
@@ -334,7 +344,7 @@ def consulta():
     documento = request.args.get('doc')
 
     cnxn = pyodbc.connect(
-        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=server;DATABASE=database;Trusted_Connection=yes')
+        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=Server;DATABASE=database;Trusted_Connection=yes')
 
     # Consulta por nome
     if (nome != None and nome != "") and (sobrenome == None or sobrenome == '') and (
@@ -413,8 +423,6 @@ def consulta():
                 <br><br>DOCUMENTO:
                 <input type="text" name="doc">
 
-                <br><br>LIDER:
-                <input type="text" name="lider">
 
 
                 <br><br><input type="submit" name="enviar" value="Consultar">
@@ -456,10 +464,204 @@ def tabela_consulta():
                 <br><br>  
             <a href = "http://127.0.0.1:5000/consulta"> Voltar para consulta </a>
 
-            <p style="text-align:right;"> <a href = "http://127.0.0.1:5000/consulta"> Alterar dados do funcionário </a> </p>
+            <p style="text-align:right;"> <a href = "http://127.0.0.1:5000/alterar"> Alterar dados do funcionário </a> </p>
             <br>
             </form> 
                 '''
+
+
+@app.route("/alterar")
+def alterar():
+    global log
+    global usuar
+    global permissao
+    global vsobrenome
+    global vnome
+    global vdocumento
+    global vid_cliente
+    global vcelular
+    global vemail
+    global vdata_nasc
+    global vtelefone
+    global vcep
+    global vbairro
+    global vrua
+    global vcomplemento
+    global tabela
+    global usuar
+    global permissao
+    global cadastro
+    global psobrenome
+    global pdoc
+    global pnome
+    global id
+    global html
+
+    id = ''
+    psobrenome = ''
+    pnome = ''
+    pdoc = ''
+
+    altera_nome = request.args.get('nome')
+    altera_sobrenome = request.args.get('sobrenome')
+    altera_documento = request.args.get('doc')
+    altera_celular = request.args.get('cel')
+    altera_dt_nascimento = request.args.get('nascimento')
+    altera_telefone = request.args.get('fone')
+    altera_email = request.args.get('email')
+    altera_cep = request.args.get('cep')
+    altera_rua = request.args.get('rua')
+    altera_bairro = request.args.get('bairro')
+    altera_numero = request.args.get('numero')
+    altera_complemento = request.args.get('complemento')
+
+    cnxn = pyodbc.connect(
+        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=server;DATABASE=database;Trusted_Connection=yes')
+
+    try:
+        if altera_documento != None:
+            pdoc = altera_documento.replace('.', '').replace('-', '')
+            pnome = altera_sobrenome.strip()
+            psobrenome = altera_sobrenome.strip()
+            select = f''' SELECT id from clietes where documento = {pdoc} '''
+            df = pd.read_sql(select, cnxn)
+            id = df['id'][0]
+
+        elif altera_nome != None and altera_sobrenome != None:
+            pnome = altera_sobrenome.strip()
+            psobrenome = altera_sobrenome.strip()
+            pdoc = altera_documento.replace('.', '').replace('-', '')
+            select = f''' SELECT id from clietes where nome = '{pnome}' and sobrenome = '{psobrenome}' '''
+            df = pd.read_sql(select, cnxn)
+            id = df['id'][0]
+
+    except:
+
+        try:
+            if altera_nome != None and altera_sobrenome != None:
+                pnome = altera_sobrenome.strip()
+                psobrenome = altera_sobrenome.strip()
+                pdoc = altera_documento.replace('.', '').replace('-', '')
+                select = f''' SELECT id from clietes where nome = '{pnome}'  and sobrenome = '{psobrenome}' '''
+                df = pd.read_sql(select, cnxn)
+                id = df['id'][0]
+        except:
+            return html
+
+    # Atualiza a tabela clietes
+    if altera_documento != None and altera_documento != '' and psobrenome != None and psobrenome != '' \
+            and pnome != None and pnome != '' and altera_celular != None and altera_celular != '' and altera_email != None \
+            and altera_email != '' and altera_rua != None and altera_rua != '' and altera_bairro != None and \
+            altera_bairro != '':
+        clietes = f""" UPDATE dbo.clietes  SET sobrenome = '{psobrenome}' , nome = '{pnome}'
+        , data_nascimento = '{altera_dt_nascimento}', data_cadastro = GETDATE(), usuario_ultalteracao = '{usuar}', documento = {altera_documento} """
+        cnxn.execute(clietes)
+        cnxn.commit()
+        time.sleep(5)
+
+        # Atualiza a tabela contato
+        atualiza_tb_contato = f""" UPDATE contato  SET celular = '{altera_celular}'
+                                                , telefone = '{altera_telefone}'
+                                                ,email = '{altera_email}'
+
+                                                WHERE id_cliente = {id}
+
+        """
+        cnxn.execute(atualiza_tb_contato)
+        cnxn.commit()
+        time.sleep(5)
+
+        # Atualiza a tabela endereco
+        atualiza_tb_endereco = f""" UPDATE endereco  SET cep = '{altera_cep}'
+                                                    , rua = '{altera_rua}'
+                                                    ,bairro = '{altera_bairro}'
+                                                    ,numero = '{altera_numero}'
+                                                    ,complemento = {altera_complemento}
+
+                                                    WHERE id_cliente = {id}
+
+            """
+        cnxn.execute(atualiza_tb_endereco)
+        cnxn.commit()
+        time.sleep(5)
+
+    html = f'''<b>Alteração das informações</b> <br><br> <br><br><br><br> <form method="PUT" >
+
+    <body>
+                <style>
+                body{{
+
+                background-repeat: no-repeat;
+                background-attachment: fixed;
+                background-color: Violet
+
+
+                 }}
+                 </style></body>
+                 <label for >
+
+    <input type="text" name="nome" placeholder="Digite Nome" >
+    <input type="text" name="sobrenome" placeholder="Digite Sobrenome">
+    <input type="text" size='30' name="doc" placeholder="Digite documento(apenas numeros)">
+    <input type="text" name="nascimento" placeholder="Digite data de nascimento">
+    <input type="text" name="cel" placeholder="Digite Celular">
+    <input type="text" name="fone" placeholder="Digite Telefone(opcional)">
+    <input type="text" name="email" placeholder="Digite e-mail"><br>
+    <br><input type="text" name="cep" placeholder="Digite cep(opcional)">
+    <input type="text" name="rua" placeholder="Digite Nome da rua">
+    <input type="text" name="bairro" placeholder="Digite Nome do bairro">
+    <input type="text" name="numero" placeholder="Digite Numero">
+    <input type="text" size='25' name="complemento" placeholder="Digite Complemento(opcional)">
+
+    <br><br><br><input type="submit" name="enviar" value="Cadastrar">
+    <br><br><br><br>
+    <b>PREENCHA TODOS OS CAMPOS OBRIGATÓRIOS<b>
+
+</form> 
+'''
+
+    html2 = f'''<b>Alteração das informações</b> <br><br> <br><br><br><br> <form method="PUT" >
+
+    <body>
+                <style>
+                body{{
+
+                background-repeat: no-repeat;
+                background-attachment: fixed;
+                background-color: Violet
+
+
+                 }}
+                 </style></body>
+                 <label for >
+
+    <input type="text" name="nome" placeholder="Digite Nome" >
+    <input type="text" name="sobrenome" placeholder="Digite Sobrenome">
+    <input type="text" size='30' name="doc" placeholder="Digite documento(apenas numeros)">
+    <input type="text" name="nascimento" placeholder="Digite data de nascimento">
+    <input type="text" name="cel" placeholder="Digite Celular">
+    <input type="text" name="fone" placeholder="Digite Telefone(opcional)">
+    <input type="text" name="email" placeholder="Digite e-mail">
+    <input type="text" name="cep" placeholder="Digite cep(opcional)">
+    <input type="text" name="rua" placeholder="Digite Nome da rua">
+    <input type="text" name="bairro" placeholder="Digite Nome do bairro">
+    <input type="text" name="numero" placeholder="Digite Numero">
+    <input type="text" size='25' name="complemento" placeholder="Digite Complemento(opcional)">
+
+    <br><br><input type="submit" name="enviar" value="Cadastrar">
+    <br><br><br><br>
+</form> 
+
+    Dados Alterados por {usuar}
+
+    '''
+
+    if (usuar == None or usuar == "") or log == False or permissao != "F":
+        return redirect("/")
+    elif altera_nome != "" and altera_nome != None:
+        return html2
+    else:
+        return html
 
 
 if __name__ == "__main__":
