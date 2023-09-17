@@ -664,5 +664,145 @@ def alterar():
         return html
 
 
+@app.route("/vendas")
+def vendas():
+    global log
+    global usuar
+    global permissao
+    global msg
+    global id_cli
+    global id_produto
+    global valor
+    global quantidade
+    global documento
+
+    nome = request.args.get('nome')
+    sobrenome = request.args.get('sobrenome')
+    documento = request.args.get('doc')
+    quantidade = request.args.get('qtd')
+    produto = request.args.get('produto')
+
+    html = f'''<b>Cadastro das vendas</b> <br><br>  <br><br><br><br> 
+    <form method="PUT" >
+    <body>
+                <style>
+                body{{
+
+                background-repeat: no-repeat;
+                background-attachment: fixed;
+                background-color: Violet
+
+
+                 }}
+                 </style></body>
+                 <label for >
+
+    <input type="text" name="nome" placeholder="Digite Nome" >
+    <input type="text" name="sobrenome" placeholder="Digite Sobrenome">
+    <input type="text" size='30' name="doc" placeholder="Digite documento(apenas numeros)">
+    <input type="text" size='25' name="qtd" placeholder="Digite a quantidade comprada">
+    <input type="text" name="produto" placeholder="Digite nome do produto">
+
+
+    <br><br><br><input type="submit" name="enviar" value="Cadastrar">
+    <br><br><br><br>
+</form> 
+
+
+'''
+
+    html2 = f'''<b>ERRO no Cadastro das vendas</b> <br><br>  <br><br><br><br> 
+    <form method="PUT" >
+    <body>
+                <style>
+                body{{
+
+                background-repeat: no-repeat;
+                background-attachment: fixed;
+                background-color: Violet
+
+
+                 }}
+                 </style></body>
+                 <label for >
+
+    <input type="text" name="nome" placeholder="Digite Nome" >
+    <input type="text" name="sobrenome" placeholder="Digite Sobrenome">
+    <input type="text" size='30' name="doc" placeholder="Digite documento(apenas numeros)">
+    <input type="text" size='25' name="qtd" placeholder="Digite a quantidade comprada">
+    <input type="text" name="produto" placeholder="Digite nome do produto">
+
+
+    <br><br><br><input type="submit" name="enviar" value="Cadastrar">
+    <br><br><br><br>
+</form> 
+
+
+'''
+    if (usuar == None or usuar == "") or log == False or permissao != "F":
+        return redirect('/')
+    # elif nome == None:
+    #     return html
+    elif documento == None:
+        return html
+    elif len(documento) <= 1:
+        return html
+    elif (documento != None and documento != ""):
+        cnxn = pyodbc.connect(
+            'DRIVER={ODBC Driver 17 for SQL Server};SERVER=SERVER;DATABASE=DATABASE;Trusted_Connection=yes')
+        try:
+
+            try:
+                cnxn = pyodbc.connect(
+                    'DRIVER={ODBC Driver 17 for SQL Server};SERVER=SERVER;DATABASE=DATABASE;Trusted_Connection=yes')
+                rdocumento = documento.replace('-', '').replace('.', '')
+                valida_cliente = f''' SELECT id_cliente FROM [Projeto_Integrador2].[dbo].[clietes] WHERE documento = {rdocumento} '''
+                df = pd.read_sql(valida_cliente, cnxn)
+                id_cli = df['id_cliente'][0]
+
+                cproduto = produto.strip().upper()
+                cid_produto = f''' SELECT id_produto FROM [Projeto_Integrador2].dbo.dim_produto WHERE upper(trim(nome_produto)) = '{produto}' '''
+                df = pd.read_sql(cid_produto, cnxn)
+                id_produto = df['id_produto'][0]
+                #
+                cvalor = f''' SELECT valor FROM [Projeto_Integrador2].dbo.dim_produto WHERE id_produto = {id_produto} '''
+                df = pd.read_sql(cvalor, cnxn)
+                valor_unidade = df['valor'][0]
+                valor = valor_unidade * float(quantidade)
+
+            except:
+                return html2 + f'Cliente não cadastrado {valor}'
+
+
+
+
+
+
+
+
+        except:
+            cproduto = documento.strip().upper()
+            cid_produto = f''' SELECT id_produto FROM [Projeto_Integrador2].dbo.dim_produto WHERE nome_produto = {cproduto} '''
+            df = pd.read_sql(cid_produto, cnxn)
+            id_produto = df['id_produto'][0]
+
+        try:
+            cnxn = pyodbc.connect(
+                'DRIVER={ODBC Driver 17 for SQL Server};SERVER=SERVER;DATABASE=DATABASE;Trusted_Connection=yes')
+
+            # Inserindo dados na tabela de vendas
+            query_venda = f''' insert into  [Projeto_Integrador2].[dbo].[vendas]
+                                (id_cliente,id_produto,quantidade,vendedor,valor,data_venda) 
+                          values({id_cli},{id_produto},{quantidade},'{usuar}',{valor},GETDATE()) '''
+            cnxn.execute(query_venda)
+            cnxn.commit()
+            time.sleep(5)
+
+            return html + f" venda cadastrada com sucesso"
+
+        except:
+            return html2 + f'Houve um erro no cadastramento'
+
+
 if __name__ == "__main__":
     app.run(debug=True)
