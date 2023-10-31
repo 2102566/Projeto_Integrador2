@@ -38,8 +38,10 @@ def homepage():
     global permissao
     log = False
 
+    usuario = usuar
+
     cnxn = pyodbc.connect(
-        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=server;DATABASE=database;Trusted_Connection=yes')
+        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=SERVER;DATABASE=database;Trusted_Connection=yes')
     count = ''' select count(*) as row from [dbo].[acessos]  '''
     ssql = ''' select * from [dbo].[acessos] '''
     dff = pd.read_sql(ssql, cnxn)
@@ -90,13 +92,13 @@ def homepage():
 
         '''
 
-    if (log == True and usuario != None and permissao == 'F'):
+    if (log == True and usuar != None and permissao == 'F'):
         return redirect(url_for("menu"))
 
-    elif (log == True and usuario != None and permissao == 'C'):
+    elif (log == True and usuar != None and permissao == 'C'):
         return redirect(url_for("consulta"))
 
-    elif (log == False and usuario != None):
+    elif (log == False and usuar != None):
         return form
 
     else:
@@ -134,9 +136,9 @@ def menu():
 
                 <br><br> <a href = "http://127.0.0.1:5000/alterar" > Alterar dados do cliente </a>
 
-                <br><br> <a href = "http://127.0.0.1:5000/" > Nova venda </a>
+                <br><br> <a href = "http://127.0.0.1:5000/vendas" > Nova venda </a>
 
-                <br><br> <a href = "http://127.0.0.1:5000/" > Estoque </a>
+                <br><br> <a href = "http://127.0.0.1:5000/estoque" > Estoque </a>
 
 
                 </html>
@@ -151,7 +153,7 @@ def menu():
         return html
 
 
-# Pagina de cadastro dados cadastrados dos clientes
+# Pagina de cadastro de dados dos clientes
 @app.route("/cadastro")
 def cadastro():
     global log
@@ -253,7 +255,7 @@ def cadastro():
         return html
     elif (nome != None and nome != ""):
         cnxn = pyodbc.connect(
-            'DRIVER={ODBC Driver 17 for SQL Server};SERVER=Server;DATABASE=databse;Trusted_Connection=yes')
+            'DRIVER={ODBC Driver 17 for SQL Server};SERVER=SERVER;DATABASE=databse;Trusted_Connection=yes')
         try:
 
             try:
@@ -284,7 +286,7 @@ def cadastro():
 
             try:
                 cnxn = pyodbc.connect(
-                    'DRIVER={ODBC Driver 17 for SQL Server};SERVER=server;DATABASE=database;Trusted_Connection=yes')
+                    'DRIVER={ODBC Driver 17 for SQL Server};SERVER=SERVER;DATABASE=database;Trusted_Connection=yes')
 
                 # Inserindo dados na tabela de cliente
                 query_cliente = f''' insert into  [Projeto_Integrador2].[dbo].[clietes] (nome,sobrenome,data_nascimento,documento) 
@@ -344,7 +346,7 @@ def consulta():
     documento = request.args.get('doc')
 
     cnxn = pyodbc.connect(
-        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=Server;DATABASE=database;Trusted_Connection=yes')
+        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=SERVER;DATABASE=database;Trusted_Connection=yes')
 
     # Consulta por nome
     if (nome != None and nome != "") and (sobrenome == None or sobrenome == '') and (
@@ -516,7 +518,7 @@ def alterar():
     altera_complemento = request.args.get('complemento')
 
     cnxn = pyodbc.connect(
-        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=server;DATABASE=database;Trusted_Connection=yes')
+        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=SERVER;DATABASE=database;Trusted_Connection=yes')
 
     try:
         if altera_documento != None:
@@ -664,6 +666,8 @@ def alterar():
         return html
 
 
+# Front para o registro de vendas
+
 @app.route("/vendas")
 def vendas():
     global log
@@ -749,12 +753,12 @@ def vendas():
         return html
     elif (documento != None and documento != ""):
         cnxn = pyodbc.connect(
-            'DRIVER={ODBC Driver 17 for SQL Server};SERVER=SERVER;DATABASE=DATABASE;Trusted_Connection=yes')
+            'DRIVER={ODBC Driver 17 for SQL Server};SERVER=SERVER;DATABASE=database;Trusted_Connection=yes')
         try:
 
             try:
                 cnxn = pyodbc.connect(
-                    'DRIVER={ODBC Driver 17 for SQL Server};SERVER=SERVER;DATABASE=DATABASE;Trusted_Connection=yes')
+                    'DRIVER={ODBC Driver 17 for SQL Server};SERVER=SERVER;DATABASE=database;Trusted_Connection=yes')
                 rdocumento = documento.replace('-', '').replace('.', '')
                 valida_cliente = f''' SELECT id_cliente FROM [Projeto_Integrador2].[dbo].[clietes] WHERE documento = {rdocumento} '''
                 df = pd.read_sql(valida_cliente, cnxn)
@@ -788,7 +792,7 @@ def vendas():
 
         try:
             cnxn = pyodbc.connect(
-                'DRIVER={ODBC Driver 17 for SQL Server};SERVER=SERVER;DATABASE=DATABASE;Trusted_Connection=yes')
+                'DRIVER={ODBC Driver 17 for SQL Server};SERVER=SERVER;DATABASE=database;Trusted_Connection=yes')
 
             # Inserindo dados na tabela de vendas
             query_venda = f''' insert into  [Projeto_Integrador2].[dbo].[vendas]
@@ -801,7 +805,127 @@ def vendas():
             return html + f" venda cadastrada com sucesso"
 
         except:
-            return html2 + f'Houve um erro no cadastramento'
+            return html2 + f'Houve um erro no cadastramento, clie {id_cli}, prod: {id_produto}, qtd: {quantidade}, us: {usuar}, val: {valor}'
+
+
+@app.route("/estoque")
+def estoque():
+    global log
+    global usuar
+    global permissao
+    global qtd_entrada
+    global qtd_saida
+    global saldo
+    global cod_prod
+    global query_estoque
+    log = False
+    usuario = usuar
+    entrada = ''
+    qtd_entrada = ''
+    qtd_saida = ''
+    saldo = ''
+    cod_prod = ''
+    query_estoque = ''
+
+    cnxn = pyodbc.connect(
+        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=SERVER;DATABASE=database;Trusted_Connection=yes')
+
+    qtd = request.args.get('valor')
+    # usuar = usuario
+    acao = request.args.get('acao')
+
+    produto = request.args.get('produto')
+
+    saldo_estoque = f''' SELECT [quantidade_estoque] FROM [Projeto_Integrador2].[dbo].[estoque] WHERE data_atualizacao = (select max(data_atualizacao) from [Projeto_Integrador2].[dbo].[estoque]) '''
+    df = pd.read_sql(saldo_estoque, cnxn)
+    saldo_estoque = df['quantidade_estoque'][0]
+
+    form = f'''<b>Fluxo de estoque</b> <br><br> <br><br><br><br> <form method="PUT" >
+             <body><div><style>
+             <p><img src=({{url_for('static',filename='imagem_teste.jpg' }})></p>
+             </style></div></body>
+            <select type="text" name="acao"> 
+                <option value='entrada'>Entrada</option>
+                 <option value='saida'>Saida</option>
+                 placeholder="Escolha sua acao" /select>
+
+            <input type="text" name="valor" placeholder="Digite quantidade">
+            <input type="text" name="produto" placeholder="Digite produto">
+            <input type="submit" name="enviar" value="Atualizar">
+        </form> 
+            <br><br><i> Houve algum problema com a atualização do estoque  <i> '''
+
+    form_2 = f'''<b>Fluxo de estoque 2</b> <br><br> <br><br><br><br> <form method="PUT" >
+             <body><div><style>
+             <p><img src=({{url_for('static',filename='imagem_teste.jpg' }})></p>
+             </style></div></body>
+            <select type="text" name="acao"> 
+                <option value='entrada'>Entrada</option>
+                 <option value='saida'>Saida</option>
+                 placeholder="Escolha sua acao" /select>
+            <input type="text" name="valor" placeholder="Digite quantidade">
+            <input type="text" name="produto" placeholder="Digite produto">
+            <input type="submit" name="enviar" value="Atualizar">
+        </form> 
+            <br><br>'''
+
+    html_sucesso = f'''<b>Fluxo de estoque 3</b> <br><br> <br><br><br><br> <form method="PUT" >
+             <body><div><style>
+             <p><img src=({{url_for('static',filename='imagem_teste.jpg' }})></p>
+             </style></div></body>
+            <select type="text" name="acao"> 
+                <option value='entrada'>Entrada</option>
+                 <option value='saida'>Saida</option>
+                 placeholder="Escolha sua acao" /select>
+            <input type="text" name="valor" placeholder="Digite quantidade">
+            <input type="text" name="produto" placeholder="Digite produto">
+            <input type="submit" name="enviar" value="Atualizar">
+        </form> 
+            <br><br> <b>Estoque atualizado !!! </b>'''
+
+    if (log == True and usuario != None and permissao == 'F'):
+        return redirect(url_for("menu"))
+
+    elif (log == True and usuario != None and permissao == 'C'):
+        return redirect(url_for("/"))
+
+
+
+
+
+
+    elif (acao != None and acao != '') and (qtd != None and qtd != ''):
+        # Atualizando estoque
+
+        query = f''' SELECT [id_produto] FROM [Projeto_Integrador2].[dbo].dim_produto 
+        where trim(upper([nome_produto])) = trim(upper('{produto}')) '''
+        df_prod = pd.read_sql(query, cnxn)
+        cod_prod = df_prod['id_produto'][0]
+        cod_prod = int(cod_prod)
+
+        if acao == 'entrada':
+            qtd_entrada = qtd
+            qtd_saida = 0
+            saldo = int(saldo_estoque) + int(qtd)
+
+        elif acao == 'saida':
+            qtd_entrada = 0
+            qtd_saida = qtd
+            saldo = int(saldo_estoque) - int(qtd)
+
+        query_estoque = f''' insert into  [Projeto_Integrador2].[dbo].[estoque]
+                                        (id_produto,qtd_entrada,qtd_saida,quantidade_estoque,data_atualizacao) 
+                                  values({cod_prod},{qtd_entrada},{qtd_saida},{saldo},GETDATE()) '''
+        cnxn.execute(query_estoque)
+        cnxn.commit()
+        time.sleep(3)
+        return html_sucesso
+
+    elif (log == False and usuario != None):
+        return form_2
+
+    else:
+        return form
 
 
 if __name__ == "__main__":
