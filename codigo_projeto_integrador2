@@ -475,7 +475,7 @@ def tabela_consulta():
                 <br><br>  
             <a href = "http://127.0.0.1:5000/consulta"> Voltar para consulta </a>
 
-            <p style="text-align:right;"> <a href = "http://127.0.0.1:5000/alterar"> Alterar dados do funcionário </a> </p>
+            <p style="text-align:right;"> <a href = "http://127.0.0.1:5000/alterar"> Alterar dados do cliente </a> </p>
             <br>
             </form> 
                 '''
