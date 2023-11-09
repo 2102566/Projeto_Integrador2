@@ -46,8 +46,7 @@ def homepage():
     usuario = usuar
 
     cnxn = pyodbc.connect(
-        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=SERVER;DATABASE=database;Trusted_Connection=yes')
-
+        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=server;DATABASE=database;Trusted_Connection=yes')
     count = ''' select count(*) as row from [dbo].[acessos]  '''
     ssql = ''' select * from [dbo].[acessos] '''
     dff = pd.read_sql(ssql, cnxn)
@@ -199,7 +198,7 @@ def cadastro():
 
     <input type="text" name="nome" placeholder="Digite Nome" >
     <input type="text" name="sobrenome" placeholder="Digite Sobrenome">
-    <input type="text" size='30' name="doc" placeholder="Digite documento(apenas numeros)">
+    <input type="text" size='28' name="doc" placeholder="Digite documento(apenas numeros)">
     <input type="text" name="nascimento" placeholder="Digite data de nascimento">
     <input type="text" name="cel" placeholder="Digite Celular">
     <input type="text" name="fone" placeholder="Digite Telefone(opcional)">
@@ -253,7 +252,7 @@ def cadastro():
 </form> 
 
     '''
-    if (usuar == None or usuar == "") or log == False or permissao != "F":
+    if (usuar == None or usuar == "") or log == False:  # or permissao != "F":
         return redirect('/')
     elif nome == None:
         return html
@@ -263,8 +262,7 @@ def cadastro():
         return html
     elif (nome != None and nome != ""):
         cnxn = pyodbc.connect(
-            'DRIVER={ODBC Driver 17 for SQL Server};SERVER=SERVER;DATABASE=database;Trusted_Connection=yes')
-
+            'DRIVER={ODBC Driver 17 for SQL Server};server;DATABASE=databse;Trusted_Connection=yes')
         try:
 
             try:
@@ -295,7 +293,7 @@ def cadastro():
 
             try:
                 cnxn = pyodbc.connect(
-                    'DRIVER={ODBC Driver 17 for SQL Server};SERVER=SERVER;DATABASE=database;Trusted_Connection=yes')
+                    'DRIVER={ODBC Driver 17 for SQL Server};SERVER=server;DATABASE=database;Trusted_Connection=yes')
 
                 # Inserindo dados na tabela de cliente
                 query_cliente = f''' insert into  [Projeto_Integrador2].[dbo].[clietes] (nome,sobrenome,data_nascimento,documento) 
@@ -355,7 +353,7 @@ def consulta():
     documento = request.args.get('doc')
 
     cnxn = pyodbc.connect(
-        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=SERVER;DATABASE=database;Trusted_Connection=yes')
+        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=server;DATABASE=databse;Trusted_Connection=yes')
 
     # Consulta por nome
     if (nome != None and nome != "") and (sobrenome == None or sobrenome == '') and (
@@ -527,35 +525,35 @@ def alterar():
     altera_complemento = request.args.get('complemento')
 
     cnxn = pyodbc.connect(
-        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=SERVER;DATABASE=database;Trusted_Connection=yes')
+        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=server;DATABASE=databse;Trusted_Connection=yes')
 
     try:
-        if altera_documento != None:
+        if altera_documento != None and altera_documento != '':
             pdoc = altera_documento.replace('.', '').replace('-', '')
-            pnome = altera_sobrenome.strip()
+            pnome = altera_nome.strip()
             psobrenome = altera_sobrenome.strip()
-            select = f''' SELECT id from clietes where documento = {pdoc} '''
+            select = f''' SELECT id_cliente from clietes where documento = {pdoc} '''
             df = pd.read_sql(select, cnxn)
-            id = df['id'][0]
+            id = df['id_cliente'][0]
 
         elif altera_nome != None and altera_sobrenome != None:
-            pnome = altera_sobrenome.strip()
+            pnome = altera_nome.strip()
             psobrenome = altera_sobrenome.strip()
             pdoc = altera_documento.replace('.', '').replace('-', '')
-            select = f''' SELECT id from clietes where nome = '{pnome}' and sobrenome = '{psobrenome}' '''
+            select = f''' SELECT id_cliente from clietes where nome = '{pnome}' and sobrenome = '{psobrenome}' '''
             df = pd.read_sql(select, cnxn)
-            id = df['id'][0]
+            id = df['id_cliente'][0]
 
     except:
 
         try:
             if altera_nome != None and altera_sobrenome != None:
-                pnome = altera_sobrenome.strip()
+                pnome = altera_nome.strip()
                 psobrenome = altera_sobrenome.strip()
                 pdoc = altera_documento.replace('.', '').replace('-', '')
-                select = f''' SELECT id from clietes where nome = '{pnome}'  and sobrenome = '{psobrenome}' '''
+                select = f''' SELECT id_cliente from clietes where nome = '{pnome}'  and sobrenome = '{psobrenome}' '''
                 df = pd.read_sql(select, cnxn)
-                id = df['id'][0]
+                id = df['id_cliente'][0]
         except:
             return html
 
@@ -565,7 +563,8 @@ def alterar():
             and altera_email != '' and altera_rua != None and altera_rua != '' and altera_bairro != None and \
             altera_bairro != '':
         clietes = f""" UPDATE dbo.clietes  SET sobrenome = '{psobrenome}' , nome = '{pnome}'
-        , data_nascimento = '{altera_dt_nascimento}', data_cadastro = GETDATE(), usuario_ultalteracao = '{usuar}', documento = {altera_documento} """
+        , data_nascimento = '{altera_dt_nascimento}', data_cadastro = GETDATE(), usuario_ultalteracao = '{usuar}', documento = {altera_documento} 
+                WHERE id_cliente = {id}"""
         cnxn.execute(clietes)
         cnxn.commit()
         time.sleep(5)
@@ -584,10 +583,10 @@ def alterar():
 
         # Atualiza a tabela endereco
         atualiza_tb_endereco = f""" UPDATE endereco  SET cep = '{altera_cep}'
-                                                    , rua = '{altera_rua}'
+                                                    ,rua = '{altera_rua}'
                                                     ,bairro = '{altera_bairro}'
                                                     ,numero = '{altera_numero}'
-                                                    ,complemento = {altera_complemento}
+                                                    ,complemento = '{altera_complemento}'
 
                                                     WHERE id_cliente = {id}
 
@@ -752,7 +751,7 @@ def vendas():
 
 
 '''
-    if (usuar == None or usuar == "") or log == False or permissao != "F":
+    if (usuar == None or usuar == "") or log == False:  # or permissao != "F":
         return redirect('/')
     # elif nome == None:
     #     return html
@@ -762,14 +761,12 @@ def vendas():
         return html
     elif (documento != None and documento != ""):
         cnxn = pyodbc.connect(
-            'DRIVER={ODBC Driver 17 for SQL Server};SERVER=SERVER;DATABASE=database;Trusted_Connection=yes')
-
+            'DRIVER={ODBC Driver 17 for SQL Server};SERVER=server;DATABASE=database;Trusted_Connection=yes')
         try:
 
             try:
                 cnxn = pyodbc.connect(
-                    'DRIVER={ODBC Driver 17 for SQL Server};SERVER=SERVER;DATABASE=database;Trusted_Connection=yes')
-
+                    'DRIVER={ODBC Driver 17 for SQL Server};SERVER=server;DATABASE=database;Trusted_Connection=yes')
                 rdocumento = documento.replace('-', '').replace('.', '')
                 valida_cliente = f''' SELECT id_cliente FROM [Projeto_Integrador2].[dbo].[clietes] WHERE documento = {rdocumento} '''
                 df = pd.read_sql(valida_cliente, cnxn)
@@ -786,7 +783,7 @@ def vendas():
                 valor = valor_unidade * float(quantidade)
 
             except:
-                return html2 + f'Cliente não cadastrado {valor}'
+                return html2 + f'Cliente não cadastrado<br><br> Nome: {nome}, <br><br> Documento: {documento}'
 
 
 
@@ -803,7 +800,7 @@ def vendas():
 
         try:
             cnxn = pyodbc.connect(
-                'DRIVER={ODBC Driver 17 for SQL Server};SERVER=DESKTOP-0Q3N0LC\SQLEXPRESS;DATABASE=Projeto_Integrador2;Trusted_Connection=yes')
+                'DRIVER={ODBC Driver 17 for SQL Server};SERVER=server;DATABASE=databse;Trusted_Connection=yes')
 
             # Inserindo dados na tabela de vendas
             query_venda = f''' insert into  [Projeto_Integrador2].[dbo].[vendas]
@@ -862,7 +859,7 @@ def estoque():
     query_estoque = ''
 
     cnxn = pyodbc.connect(
-        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=SERVER;DATABASE=database;Trusted_Connection=yes')
+        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=server;DATABASE=databse;Trusted_Connection=yes')
 
     qtd = request.args.get('valor')
     # usuar = usuario
@@ -899,7 +896,7 @@ def estoque():
         </form> 
             <br><br><i> Houve algum problema com a atualização do estoque  <i> '''
 
-    form_2 = f'''<b>Fluxo de estoque 2</b> <br><br> <br><br><br><br> <form method="PUT" >
+    form_2 = f'''<b>Fluxo de estoque</b> <br><br> <br><br><br><br> <form method="PUT" >
              <body>
                 <style>
                 body{{
@@ -924,7 +921,7 @@ def estoque():
         </form> 
             <br><br>'''
 
-    html_sucesso = f'''<b>Fluxo de estoque 3</b> <br><br> <br><br><br><br> <form method="PUT" >
+    html_sucesso = f'''<b>Fluxo de estoque</b> <br><br> <br><br><br><br> <form method="PUT" >
              <body>
                 <style>
                 body{{
@@ -1064,7 +1061,7 @@ def dash():
                     </html> '''
 
     cnxn = pyodbc.connect(
-        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=SERVER;DATABASE=database;Trusted_Connection=yes')
+        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=server;DATABASE=database;Trusted_Connection=yes')
 
     query = f''' SELECT max(quantidade_estoque) estoque
                   ,cast(convert(date,data_atualizacao,107) as varchar) as [data]
@@ -1145,7 +1142,7 @@ def dash_mes():
                     </html> '''
 
     cnxn = pyodbc.connect(
-        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=SERVER;DATABASE=database;Trusted_Connection=yes')
+        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=server;DATABASE=database;Trusted_Connection=yes')
 
     query = f''' SELECT max(quantidade_estoque) estoque
                   ,format(data_atualizacao,'MMM') as [data]
