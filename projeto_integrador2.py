@@ -11,6 +11,7 @@ import numpy
 import sys
 import plotly.offline as pyo
 
+
 app = Flask(__name__)
 
 # Variaveis globais para controle
@@ -24,7 +25,7 @@ vsobrenome = ''
 vdocumento = ''
 vid_cliente = ''
 vcelular = ''
-vemail = ''
+vemail= ''
 vdata_nasc = ''
 vtelefone = ''
 vcep = ''
@@ -33,8 +34,6 @@ vrua = ''
 vcomplemento = ''
 tabela = ''
 cadastro = ''
-
-
 # Página de LOGIN
 @app.route("/")
 def homepage():
@@ -46,7 +45,7 @@ def homepage():
     usuario = usuar
 
     cnxn = pyodbc.connect(
-        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=server;DATABASE=database;Trusted_Connection=yes')
+        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=DESKTOP-0Q3N0LC\SQLEXPRESS;DATABASE=Projeto_Integrador2;Trusted_Connection=yes')
     count = ''' select count(*) as row from [dbo].[acessos]  '''
     ssql = ''' select * from [dbo].[acessos] '''
     dff = pd.read_sql(ssql, cnxn)
@@ -97,6 +96,7 @@ def homepage():
 
         '''
 
+
     if (log == True and usuar != None and permissao == 'F'):
         return redirect(url_for("menu"))
 
@@ -108,7 +108,6 @@ def homepage():
 
     else:
         return form_2
-
 
 # Página do MENU de acordo com o tipo de acesso do usuário
 
@@ -140,13 +139,13 @@ def menu():
                 <br><br> <a href = "http://127.0.0.1:5000/consulta"> Consultar dados do cliente </a>
 
                 <br><br> <a href = "http://127.0.0.1:5000/alterar" > Alterar dados do cliente </a>
-
+                
                 <br><br> <a href = "http://127.0.0.1:5000/vendas" > Nova venda </a>
-
+                
                 <br><br> <a href = "http://127.0.0.1:5000/estoque" > Estoque </a>
-
+                
                 <br><br> <a href = "http://127.0.0.1:5000/graficos" > Gráficos </a>
-
+                
 
                 </html>
 
@@ -181,6 +180,7 @@ def cadastro():
     numero = request.args.get('numero')
     complemento = request.args.get('complemento')
 
+
     html = f'''<b>Cadastro dos dados</b> <br><br>  <br><br><br><br> 
     <form method="PUT" >
     <body>
@@ -208,7 +208,7 @@ def cadastro():
     <input type="text" name="bairro" placeholder="Digite Nome do bairro">
     <input type="text" name="numero" placeholder="Digite Numero">
     <input type="text" size='25' name="complemento" placeholder="Digite Complemento(opcional)">
-
+    
     <br><br><br><input type="submit" name="enviar" value="Cadastrar">
     <br><br><br><br>
 </form> 
@@ -243,16 +243,16 @@ def cadastro():
     <input type="text" name="bairro" placeholder="Digite Nome do bairro">
     <input type="text" name="numero" placeholder="Digite Numero">
     <input type="text" size='25' name="complemento" placeholder="Digite Complemento(opcional)">
-
+    
     <br><br><br><input type="submit" name="enviar" value="Cadastrar">
-
+    
     <br><br>
-
-
+    
+    
 </form> 
 
     '''
-    if (usuar == None or usuar == "") or log == False:  # or permissao != "F":
+    if (usuar == None or usuar == "") or log == 'pastel': #or permissao != "F":
         return redirect('/')
     elif nome == None:
         return html
@@ -262,7 +262,7 @@ def cadastro():
         return html
     elif (nome != None and nome != ""):
         cnxn = pyodbc.connect(
-            'DRIVER={ODBC Driver 17 for SQL Server};server;DATABASE=databse;Trusted_Connection=yes')
+            'DRIVER={ODBC Driver 17 for SQL Server};SERVER=DESKTOP-0Q3N0LC\SQLEXPRESS;DATABASE=Projeto_Integrador2;Trusted_Connection=yes')
         try:
 
             try:
@@ -273,7 +273,7 @@ def cadastro():
             except:
                 id_cli = None
 
-            if id_cli > 0:
+            if id_cli >0:
                 return html2 + f'Cliente já cadastrado, registro {id_cli}'
 
 
@@ -284,16 +284,18 @@ def cadastro():
 
 
         except:
-            if documento.__contains__('.') == True:
+            if documento.__contains__('.')==True:
                 return html2 + f'Verifique o documento do cliente: {documento}, preencha o campo apenas com números'
-            elif (rua == None or rua == '') or (bairro == None or bairro == '') or (
-                    sobrenome == None or sobrenome == '') \
-                    or (celular == None or celular == '') or (numero == '') or (email == None or email == ''):
+            elif (rua == None or rua == '') or (bairro == None or bairro == '') or (sobrenome == None or sobrenome == '') \
+                        or (celular == None or celular == '') or (numero == '') or (email == None or email == ''):
                 return html2 + f'Houve um erro no cadastramento, preencha todos os dados obrigatórios'
+
+
+
 
             try:
                 cnxn = pyodbc.connect(
-                    'DRIVER={ODBC Driver 17 for SQL Server};SERVER=server;DATABASE=database;Trusted_Connection=yes')
+                'DRIVER={ODBC Driver 17 for SQL Server};SERVER=DESKTOP-0Q3N0LC\SQLEXPRESS;DATABASE=Projeto_Integrador2;Trusted_Connection=yes')
 
                 # Inserindo dados na tabela de cliente
                 query_cliente = f''' insert into  [Projeto_Integrador2].[dbo].[clietes] (nome,sobrenome,data_nascimento,documento) 
@@ -301,6 +303,7 @@ def cadastro():
                 cnxn.execute(query_cliente)
                 cnxn.commit()
                 time.sleep(5)
+
 
                 ################################################################################################################
                 # Pegando o id_cliente da Tabela
@@ -321,10 +324,14 @@ def cadastro():
                 cnxn.execute(query_endereco)
                 cnxn.commit()
 
+
+
                 return html + f" Dados de {nome} {sobrenome} foram cadastrados com sucesso"
 
             except:
                 return html2 + f'Houve um erro no cadastramento, verifique os dados e tente novamente'
+
+
 
 
 # Gerando o front para consultar os dados dos clientes
@@ -348,43 +355,42 @@ def consulta():
     global permissao
     global cadastro
 
+
     nome = request.args.get('nome')
     sobrenome = request.args.get('sobrenome')
     documento = request.args.get('doc')
 
-    cnxn = pyodbc.connect(
-        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=server;DATABASE=databse;Trusted_Connection=yes')
 
-    # Consulta por nome
-    if (nome != None and nome != "") and (sobrenome == None or sobrenome == '') and (
-            documento == None or documento == ''):
+    cnxn = pyodbc.connect(
+        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=DESKTOP-0Q3N0LC\SQLEXPRESS;DATABASE=Projeto_Integrador2;Trusted_Connection=yes')
+
+    #Consulta por nome
+    if (nome != None and nome != "") and (sobrenome == None or sobrenome == '') and (documento == None or documento == ''):
         query = f''' EXEC [dbo].[consulta_cliente_nome] {nome} '''
         df = pd.read_sql(query, cnxn)
         tabela = df.to_html(col_space="100px", index=False, justify='center')
 
     # COnsulta por Nome e Sobrenome
-    if (nome != None and nome != "") and (sobrenome != None and sobrenome != '') and (
-            documento == None or documento == ''):
+    if (nome != None and nome != "") and (sobrenome != None and sobrenome != '') and (documento == None or documento == ''):
         query1 = f''' EXEC consulta_cliente_nome_sobrenome {nome},{sobrenome}'''
         df = pd.read_sql(query1, cnxn)
         tabela = df.to_html(col_space="100px", index=False, justify='center')
 
     # Consulta por documento
-    if (nome == None or nome == "") and (sobrenome == None or sobrenome == '') and (
-            documento != None and documento != ''):
-        vardoc = documento.replace('.', '').replace('-', '')
+    if (nome == None or nome == "") and (sobrenome == None or sobrenome == '') and (documento != None and documento != ''):
+        vardoc = documento.replace('.','').replace('-','')
         query2 = f''' EXEC [dbo].[consulta_cliente_documento] {vardoc} '''
         df = pd.read_sql(query2, cnxn)
         tabela = df.to_html(col_space="100px", index=False, justify='center')
 
     # Consulta por todos os campos
-    if (nome != None and nome != "") and (sobrenome != None and sobrenome != '') and (
-            documento != None and documento != ''):
+    if (nome != None and nome != "") and (sobrenome != None and sobrenome != '') and (documento != None and documento != ''):
         query3 = f''' EXEC [dbo].[consulta_cliente_full] {nome},'{sobrenome}',{documento} '''
         df = pd.read_sql(query3, cnxn)
         tabela = df.to_html(col_space="100px", index=False, justify='center')
 
     try:
+
 
         vnome = df['nome'].unique()
         vsobrenome = df['sobrenome'].unique()
@@ -398,7 +404,7 @@ def consulta():
         vbairro = df['bairro'].unique()
         vrua = df['rua'].unique()
         vcomplemento = df['complemento'].unique()
-        # cadastro = df['data_cadastro'].unique()
+        #cadastro = df['data_cadastro'].unique()
         # vtelefone = df['data_ultima_alteracao'].unique()
         # vtelefone = df['data_ultima_alteracao'].unique()
 
@@ -432,7 +438,7 @@ def consulta():
                 <br><br>DOCUMENTO:
                 <input type="text" name="doc">
 
-
+              
 
                 <br><br><input type="submit" name="enviar" value="Consultar">
 
@@ -447,7 +453,7 @@ def consulta():
             </form></center>
             '''
 
-    if (log == False or permissao == None or permissao == ''):
+    if (log == 'pastel' and permissao == 'iNone' and permissao == '1023'):
         return redirect('/')
     elif (nome == None and sobrenome == None and documento == None):
         return html
@@ -455,9 +461,13 @@ def consulta():
         return redirect('/tabela_consulta')
 
 
+
+
 @app.route('/tabela_consulta')
 def tabela_consulta():
     global tabela
+
+
 
     html2 = tabela
 
@@ -525,11 +535,11 @@ def alterar():
     altera_complemento = request.args.get('complemento')
 
     cnxn = pyodbc.connect(
-        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=server;DATABASE=databse;Trusted_Connection=yes')
+        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=DESKTOP-0Q3N0LC\SQLEXPRESS;DATABASE=Projeto_Integrador2;Trusted_Connection=yes')
 
     try:
-        if altera_documento != None and altera_documento != '':
-            pdoc = altera_documento.replace('.', '').replace('-', '')
+        if altera_documento != None and altera_documento != '' :
+            pdoc = altera_documento.replace('.','').replace('-','')
             pnome = altera_nome.strip()
             psobrenome = altera_sobrenome.strip()
             select = f''' SELECT id_cliente from clietes where documento = {pdoc} '''
@@ -554,20 +564,22 @@ def alterar():
                 select = f''' SELECT id_cliente from clietes where nome = '{pnome}'  and sobrenome = '{psobrenome}' '''
                 df = pd.read_sql(select, cnxn)
                 id = df['id_cliente'][0]
-        except:
-            return html
+        except: return html
+
 
     # Atualiza a tabela clietes
-    if altera_documento != None and altera_documento != '' and psobrenome != None and psobrenome != '' \
-            and pnome != None and pnome != '' and altera_celular != None and altera_celular != '' and altera_email != None \
-            and altera_email != '' and altera_rua != None and altera_rua != '' and altera_bairro != None and \
-            altera_bairro != '':
+    if altera_documento != None and altera_documento != '' and psobrenome != None and psobrenome != ''\
+        and pnome != None and pnome !='' and altera_celular != None and altera_celular != '' and altera_email != None \
+        and altera_email != '' and altera_rua != None and altera_rua != '' and altera_bairro != None and \
+        altera_bairro != '':
+
         clietes = f""" UPDATE dbo.clietes  SET sobrenome = '{psobrenome}' , nome = '{pnome}'
         , data_nascimento = '{altera_dt_nascimento}', data_cadastro = GETDATE(), usuario_ultalteracao = '{usuar}', documento = {altera_documento} 
                 WHERE id_cliente = {id}"""
         cnxn.execute(clietes)
         cnxn.commit()
         time.sleep(5)
+
 
         # Atualiza a tabela contato
         atualiza_tb_contato = f""" UPDATE contato  SET celular = '{altera_celular}'
@@ -595,8 +607,10 @@ def alterar():
         cnxn.commit()
         time.sleep(5)
 
-    html = f'''<b>Alteração das informações</b> <br><br> <br><br><br><br> <form method="PUT" >
 
+
+    html = f'''<b>Alteração das informações</b> <br><br> <br><br><br><br> <form method="PUT" >
+    
     <body>
                 <style>
                 body{{
@@ -622,16 +636,16 @@ def alterar():
     <input type="text" name="bairro" placeholder="Digite Nome do bairro">
     <input type="text" name="numero" placeholder="Digite Numero">
     <input type="text" size='25' name="complemento" placeholder="Digite Complemento(opcional)">
-
+    
     <br><br><br><input type="submit" name="enviar" value="Cadastrar">
     <br><br><br><br>
     <b>PREENCHA TODOS OS CAMPOS OBRIGATÓRIOS<b>
-
+    
 </form> 
 '''
 
     html2 = f'''<b>Alteração das informações</b> <br><br> <br><br><br><br> <form method="PUT" >
-
+        
     <body>
                 <style>
                 body{{
@@ -657,7 +671,7 @@ def alterar():
     <input type="text" name="bairro" placeholder="Digite Nome do bairro">
     <input type="text" name="numero" placeholder="Digite Numero">
     <input type="text" size='25' name="complemento" placeholder="Digite Complemento(opcional)">
-
+    
     <br><br><input type="submit" name="enviar" value="Cadastrar">
     <br><br><br><br>
 </form> 
@@ -688,11 +702,15 @@ def vendas():
     global quantidade
     global documento
 
+
+
     nome = request.args.get('nome')
     sobrenome = request.args.get('sobrenome')
     documento = request.args.get('doc')
     quantidade = request.args.get('qtd')
     produto = request.args.get('produto')
+
+
 
     html = f'''<b>Cadastro das vendas</b> <br><br>  <br><br><br><br> 
     <form method="PUT" >
@@ -714,7 +732,7 @@ def vendas():
     <input type="text" size='30' name="doc" placeholder="Digite documento(apenas numeros)">
     <input type="text" size='25' name="qtd" placeholder="Digite a quantidade comprada">
     <input type="text" name="produto" placeholder="Digite nome do produto">
-
+    
 
     <br><br><br><input type="submit" name="enviar" value="Cadastrar">
     <br><br><br><br>
@@ -743,7 +761,7 @@ def vendas():
     <input type="text" size='30' name="doc" placeholder="Digite documento(apenas numeros)">
     <input type="text" size='25' name="qtd" placeholder="Digite a quantidade comprada">
     <input type="text" name="produto" placeholder="Digite nome do produto">
-
+    
 
     <br><br><br><input type="submit" name="enviar" value="Cadastrar">
     <br><br><br><br>
@@ -751,7 +769,7 @@ def vendas():
 
 
 '''
-    if (usuar == None or usuar == "") or log == False:  # or permissao != "F":
+    if (usuar == 'iNone' or usuar == "1025") or log == 'pastel':# or permissao != "F":
         return redirect('/')
     # elif nome == None:
     #     return html
@@ -761,12 +779,12 @@ def vendas():
         return html
     elif (documento != None and documento != ""):
         cnxn = pyodbc.connect(
-            'DRIVER={ODBC Driver 17 for SQL Server};SERVER=server;DATABASE=database;Trusted_Connection=yes')
+            'DRIVER={ODBC Driver 17 for SQL Server};SERVER=DESKTOP-0Q3N0LC\SQLEXPRESS;DATABASE=Projeto_Integrador2;Trusted_Connection=yes')
         try:
 
             try:
                 cnxn = pyodbc.connect(
-                    'DRIVER={ODBC Driver 17 for SQL Server};SERVER=server;DATABASE=database;Trusted_Connection=yes')
+                    'DRIVER={ODBC Driver 17 for SQL Server};SERVER=DESKTOP-0Q3N0LC\SQLEXPRESS;DATABASE=Projeto_Integrador2;Trusted_Connection=yes')
                 rdocumento = documento.replace('-', '').replace('.', '')
                 valida_cliente = f''' SELECT id_cliente FROM [Projeto_Integrador2].[dbo].[clietes] WHERE documento = {rdocumento} '''
                 df = pd.read_sql(valida_cliente, cnxn)
@@ -800,7 +818,7 @@ def vendas():
 
         try:
             cnxn = pyodbc.connect(
-                'DRIVER={ODBC Driver 17 for SQL Server};SERVER=server;DATABASE=databse;Trusted_Connection=yes')
+                'DRIVER={ODBC Driver 17 for SQL Server};SERVER=DESKTOP-0Q3N0LC\SQLEXPRESS;DATABASE=Projeto_Integrador2;Trusted_Connection=yes')
 
             # Inserindo dados na tabela de vendas
             query_venda = f''' insert into  [Projeto_Integrador2].[dbo].[vendas]
@@ -815,12 +833,15 @@ def vendas():
             id_venda = df['id_venda'][0]
             time.sleep(5)
 
+
+
             # Atualizando a tabela da estoque
 
             saldo_estoque = f''' SELECT [quantidade_estoque] FROM [Projeto_Integrador2].[dbo].[estoque] WHERE data_atualizacao = (select max(data_atualizacao) from [Projeto_Integrador2].[dbo].[estoque]) '''
             df = pd.read_sql(saldo_estoque, cnxn)
             saldo_estoque = df['quantidade_estoque'][0]
             time.sleep(5)
+
 
             qtd_entrada = 0
             qtd_saida = quantidade
@@ -833,10 +854,13 @@ def vendas():
             cnxn.commit()
             time.sleep(3)
 
+
+
             return html + f" venda cadastrada com sucesso"
 
         except:
             return html2 + f'Houve um erro no cadastramento, clie {id_cli}, prod: {id_produto}, qtd: {quantidade}, us: {usuar}, val: {valor}'
+
 
 
 @app.route("/estoque")
@@ -859,7 +883,8 @@ def estoque():
     query_estoque = ''
 
     cnxn = pyodbc.connect(
-        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=server;DATABASE=databse;Trusted_Connection=yes')
+        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=DESKTOP-0Q3N0LC\SQLEXPRESS;DATABASE=Projeto_Integrador2;Trusted_Connection=yes')
+
 
     qtd = request.args.get('valor')
     # usuar = usuario
@@ -867,9 +892,12 @@ def estoque():
 
     produto = request.args.get('produto')
 
+
     saldo_estoque = f''' SELECT [quantidade_estoque] FROM [Projeto_Integrador2].[dbo].[estoque] WHERE data_atualizacao = (select max(data_atualizacao) from [Projeto_Integrador2].[dbo].[estoque]) '''
     df = pd.read_sql(saldo_estoque, cnxn)
     saldo_estoque = df['quantidade_estoque'][0]
+
+
 
     form = f'''<b>Fluxo de estoque</b> <br><br> <br><br><br><br> <form method="PUT" >
              <body>
@@ -889,7 +917,7 @@ def estoque():
                 <option value='entrada'>Entrada</option>
                  <option value='saida'>Saida</option>
                  placeholder="Escolha sua acao" /select>
-
+            
             <input type="text" name="valor" placeholder="Digite quantidade">
             <input type="text" name="produto" placeholder="Digite produto">
             <input type="submit" name="enviar" value="Atualizar">
@@ -914,7 +942,7 @@ def estoque():
                 <option value='entrada'>Entrada</option>
                  <option value='saida'>Saida</option>
                  placeholder="Escolha sua acao" /select>
-
+                 
             <input type="text" name="valor" placeholder="Digite quantidade">
             <input type="text" name="produto" placeholder="Digite produto">
             <input type="submit" name="enviar" value="Atualizar">
@@ -939,12 +967,13 @@ def estoque():
                 <option value='entrada'>Entrada</option>
                  <option value='saida'>Saida</option>
                  placeholder="Escolha sua acao" /select>
-
+                 
             <input type="text" name="valor" placeholder="Digite quantidade">
             <input type="text" name="produto" placeholder="Digite produto">
             <input type="submit" name="enviar" value="Atualizar">
         </form> 
             <br><br> <b>Estoque atualizado !!! </b>'''
+
 
     if (log == True and usuario != None and permissao == 'F'):
         return redirect(url_for("menu"))
@@ -965,6 +994,7 @@ def estoque():
         df_prod = pd.read_sql(query, cnxn)
         cod_prod = df_prod['id_produto'][0]
         cod_prod = int(cod_prod)
+
 
         if acao == 'entrada':
             qtd_entrada = qtd
@@ -1030,10 +1060,14 @@ def graficos():
         return html
 
 
+
+
+
 @app.route("/dash_dia")
 def dash():
     global tipo
     tipo = request.args.get('visao')
+
 
     dashboard_html = ''' <!DOCTYPE html>
                     <html>
@@ -1048,20 +1082,22 @@ def dash():
                 <option value='estoque'>Estoque</option>
                  <option value='vendas'>Vendas</option>
                  <option value='faturamento'>Faturamento</option>
-
-
+                 
+                 
                  placeholder="Escolha a visão" /select>
                  <input type="submit" name="enviar" value="Atualizar"><br></form>
-
-
+                    
+                    
                         {{ plot | safe }}
-
+                        
                         <br><br>
                     </body>
                     </html> '''
 
+
+
     cnxn = pyodbc.connect(
-        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=server;DATABASE=database;Trusted_Connection=yes')
+        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=DESKTOP-0Q3N0LC\SQLEXPRESS;DATABASE=Projeto_Integrador2;Trusted_Connection=yes')
 
     query = f''' SELECT max(quantidade_estoque) estoque
                   ,cast(convert(date,data_atualizacao,107) as varchar) as [data]
@@ -1071,13 +1107,18 @@ def dash():
     df_prod = pd.read_sql(query, cnxn)
     qtd_estoque = df_prod['estoque']
     dias = pd.to_datetime(df_prod['data'])
-    dd = go.Scatter(x=dias, y=qtd_estoque, mode='markers + lines', line={'color': '#8722E0'})
-    layout = go.Layout(title='Estoque por dia', xaxis=dict(title='Dias'), yaxis=dict(title='Estoque'))
+    dd = go.Scatter(x=dias, y=qtd_estoque, mode='markers + lines',line={'color':'#8722E0'})
+    layout = go.Layout(title = 'Estoque por dia', xaxis= dict(title='Dias'), yaxis=dict(title='Estoque'))
 
-    # Visao de estoque
+
+
+    #Visao de estoque
     fig = go.Figure(data=dd, layout=layout)
 
-    # Visao de vendas
+
+
+
+    #Visao de vendas
     query_v = f''' SELECT sum(quantidade) as qtd_vendas, convert(date, data_venda) as dt_venda
                         FROM [Projeto_Integrador2].[dbo].[vendas]
                         group by  convert(date, data_venda) '''
@@ -1089,6 +1130,8 @@ def dash():
     layout_v = go.Layout(title='Vendas por dia', xaxis=dict(title='Dias'), yaxis=dict(title='Vendas'))
 
     fig2 = go.Figure(data=dd_v, layout=layout_v)
+
+
 
     # Faturamento
     query_faturamento = '''  SELECT sum(valor) as valor, convert(date,data_venda) as dt_venda
@@ -1102,6 +1145,8 @@ def dash():
     layout_fatu = go.Layout(title='Faturamento por dia', xaxis=dict(title='Mês'), yaxis=dict(title='Faturamento'))
 
     figf = go.Figure(data=dd_fatu, layout=layout_fatu)
+
+
 
     tipo = request.args.get('visao')
     if (tipo == 'estoque') or (tipo == '') or (tipo == None):
@@ -1130,7 +1175,7 @@ def dash_mes():
                 <option value='estoque'>Estoque</option>
                  <option value='vendas'>Vendas</option>
                  <option value='faturamento'>Faturamento</option>
-
+                 
                  placeholder="Escolha a visão" /select>
                  <input type="submit" name="enviar" value="Atualizar"><br></form>
 
@@ -1142,7 +1187,7 @@ def dash_mes():
                     </html> '''
 
     cnxn = pyodbc.connect(
-        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=server;DATABASE=database;Trusted_Connection=yes')
+        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=DESKTOP-0Q3N0LC\SQLEXPRESS;DATABASE=Projeto_Integrador2;Trusted_Connection=yes')
 
     query = f''' SELECT max(quantidade_estoque) estoque
                   ,format(data_atualizacao,'MMM') as [data]
@@ -1173,7 +1218,9 @@ def dash_mes():
 
     fig2 = go.Figure(data=dd_v, layout=layout_v)
 
-    # Faturamento
+
+
+    #Faturamento
 
     query_faturamento = '''  SELECT sum(valor) as valor, format(data_venda,'MMM') as mes
                     FROM [Projeto_Integrador2].[dbo].[vendas]
@@ -1186,6 +1233,11 @@ def dash_mes():
     layout_fatu = go.Layout(title='Faturamento por mês', xaxis=dict(title='Mês'), yaxis=dict(title='Faturamento'))
 
     figf = go.Figure(data=dd_fatu, layout=layout_fatu)
+
+
+
+
+
 
     tipo = request.args.get('visao')
     if (tipo == 'estoque') or (tipo == '') or (tipo == None):
