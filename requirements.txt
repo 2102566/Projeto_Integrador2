@@ -39,3 +39,4 @@ Werkzeug
 winotify
 wrapt
 zipp
+gunicorn
