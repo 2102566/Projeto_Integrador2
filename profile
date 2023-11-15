@@ -1,1 +1,1 @@
-web: gunicorn codigo_projeto_integrador2:app
+web: gunicorn projeto_integrador2:app
